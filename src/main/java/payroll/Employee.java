@@ -12,17 +12,20 @@ public class Employee {
     private Long id;
     private String name;
     private String role;
+    private String firstName;
+    private String lastName;
 
     public Employee () {
     }
 
-    public Employee (String name, String role) {
-        this.name = name;
+    public Employee (String firstName, String lastName, String role) {
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.role = role;
     }
 
     public Long getId () {
-        return id;
+        return this.id;
     }
 
     public void setId (Long id) {
@@ -30,19 +33,36 @@ public class Employee {
     }
 
     public String getName () {
-        return name;
+        return this.firstName + " " + this.lastName;
     }
 
     public void setName (String name) {
-        this.name = name;
+        String[] parts = name.split(" ");
+        this.firstName = parts[0];
+        this.lastName = parts[1];
     }
 
     public String getRole () {
-        return role;
+        return this.role;
     }
 
     public void setRole (String role) {
         this.role = role;
+    }
+    public String getFirstName () {
+        return this.firstName;
+    }
+
+    public void setFirstName (String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName () {
+        return this.lastName;
+    }
+
+    public void setLastName (String lastName) {
+        this.lastName = lastName;
     }
 
     @Override
