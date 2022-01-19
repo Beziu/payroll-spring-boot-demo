@@ -2,6 +2,8 @@ package payroll;
 
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,16 +35,14 @@ public class EmployeeController {
                 linkTo(methodOn(EmployeeController.class).all()).withSelfRel());
 
     // Bez uzywania Assemblera (bezposrednie wstrzykniecie)
-    /*
-        List<EntityModel<Employee>> employees = repository.findAll().stream()
-                .map(employee -> EntityModel.of(employee,
-                        linkTo(methodOn(EmployeeController.class).one(employee.getId())).withSelfRel(),
-                        linkTo(methodOn(EmployeeController.class).all()).withRel("employees")))
-                .collect(Collectors.toList());
-
-        return CollectionModel.of(employees,
-                linkTo(methodOn(EmployeeController.class).all()).withSelfRel());
-    */
+//        List<EntityModel<Employee>> employees = repository.findAll().stream()
+//                .map(employee -> EntityModel.of(employee,
+//                        linkTo(methodOn(EmployeeController.class).one(employee.getId())).withSelfRel(),
+//                        linkTo(methodOn(EmployeeController.class).all()).withRel("employees")))
+//                .collect(Collectors.toList());
+//
+//        return CollectionModel.of(employees,
+//                linkTo(methodOn(EmployeeController.class).all()).withSelfRel());
     }
 
     @GetMapping("/employees/{id}")
@@ -54,21 +54,41 @@ public class EmployeeController {
         return assembler.toModel(employee);
 
         // Bez uzywania Assemblera (bezposrednie wstrzykniecie)
-        /*
-        return EntityModel.of(employee,
-                        linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel(),
-                        linkTo(methodOn(EmployeeController.class).all()).withRel("employees"));
-        */
+//        return EntityModel.of(employee,
+//                        linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel(),
+//                        linkTo(methodOn(EmployeeController.class).all()).withRel("employees"));
     }
 
+    // Post ktory obsluguje stare i nowe zadania klientow
+    // Zmiana w kierunku upewnienia sie czy dodanie nowego emplayees mialo miejsce
+    // tj. sprawdzenie czy dzala wlasciwie
     @PostMapping("/employees")
-    Employee newEmployee (@RequestBody Employee newEmployee) {
-        return repository.save(newEmployee);
+    ResponseEntity<?> newEmployee(@RequestBody Employee newEmployee) {
+
+        EntityModel<Employee> entityModel = assembler.toModel(repository.save(newEmployee));
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
+    // Stara wersja
+//        Employee newEmployee (@RequestBody Employee newEmployee) {
+//           return repository.save(newEmployee);
     }
 
+
+//    Obiekt Employee zbudowany na podstawie operacji save() jest następnie zawijany w EmployeeModelAssembler
+//    za pomocą EntityModel<Employee>. Korzystając z metody getRequiredLink(),
+//    możesz pobrać Link utworzone przez EmployeeModelAssemblera za pomocą SELF. Ta metoda zwraca Link,
+//    który musi zostać zamienione na a URI za pomocą metody toUri.
+    // Metoda przy aktualizacji danych uwzglednia tez pola firstName oraz lastName
     @PutMapping("/employees/{id}")
-    Employee replaceEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
-        return repository.findById(id)
+    // potrzebujemy objekt newEmplyoee oraz id
+    ResponseEntity<?> replaceEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
+
+        // tworzy nowy objekt updatedEmployee i wstawia do niego dane z repo jak znajdzie odpowiedni id
+        // jak nie to tworzy nowy odjekt z nowym id i zapisuje go.
+        // tutaj employee to nazwa tymczasowa ktora odnosi sie do znalezionego objektu
+        Employee updatedEmployee = repository.findById(id)
                 .map(employee -> {
                     employee.setName(newEmployee.getName());
                     employee.setRole(newEmployee.getRole());
@@ -76,9 +96,32 @@ public class EmployeeController {
                 })
                 .orElseGet(() -> {
                     newEmployee.setId(id);
-                    return repository.save(newEmployee);
+                    return repository.save((newEmployee));
                 });
+
+        // do zwroconego ob. updatedEmployee dodajemy za pomoca assemplerem linki
+        // tworzac model danych entityModel
+        EntityModel<Employee> entityModel = assembler.toModel(updatedEmployee);
+
+        return ResponseEntity
+                .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
+                .body(entityModel);
     }
+
+    // Stara medoda aktualizacji pracownika uwzglednia tylko pole "name"
+//    @PutMapping("/employees/{id}")
+//    Employee replaceEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
+//        return repository.findById(id)
+//                .map(employee -> {
+//                    employee.setName(newEmployee.getName());
+//                    employee.setRole(newEmployee.getRole());
+//                    return repository.save(employee);
+//                })
+//                .orElseGet(() -> {
+//                    newEmployee.setId(id);
+//                    return repository.save(newEmployee);
+//                });
+//    }
 
     @DeleteMapping("/employees/{id}")
     void deleteEmployee(@PathVariable Long id) {
