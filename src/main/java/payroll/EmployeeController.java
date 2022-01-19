@@ -15,13 +15,25 @@ public class EmployeeController {
 
     private final EmployeeRepository repository;
 
-    public EmployeeController (EmployeeRepository repository) {
+    private final EmployeeModelAssembler assembler;
+
+    public EmployeeController (EmployeeRepository repository, EmployeeModelAssembler assembler) {
         this.repository = repository;
+        this.assembler = assembler;
     }
 
     @GetMapping("/employees")
     CollectionModel<EntityModel<Employee>> all() {
 
+        List<EntityModel<Employee>> employees = repository.findAll().stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        return CollectionModel.of(employees,
+                linkTo(methodOn(EmployeeController.class).all()).withSelfRel());
+
+    // Bez uzywania Assemblera (bezposrednie wstrzykniecie)
+    /*
         List<EntityModel<Employee>> employees = repository.findAll().stream()
                 .map(employee -> EntityModel.of(employee,
                         linkTo(methodOn(EmployeeController.class).one(employee.getId())).withSelfRel(),
@@ -30,6 +42,7 @@ public class EmployeeController {
 
         return CollectionModel.of(employees,
                 linkTo(methodOn(EmployeeController.class).all()).withSelfRel());
+    */
     }
 
     @GetMapping("/employees/{id}")
@@ -38,9 +51,14 @@ public class EmployeeController {
         Employee employee = repository.findById(id)
                 .orElseThrow(() -> new EmployeeNotFoundException(id));
 
+        return assembler.toModel(employee);
+
+        // Bez uzywania Assemblera (bezposrednie wstrzykniecie)
+        /*
         return EntityModel.of(employee,
                         linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel(),
                         linkTo(methodOn(EmployeeController.class).all()).withRel("employees"));
+        */
     }
 
     @PostMapping("/employees")
