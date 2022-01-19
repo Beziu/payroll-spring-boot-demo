@@ -1,5 +1,7 @@
 package payroll;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -10,7 +12,6 @@ public class Employee {
 
     @Id @GeneratedValue
     private Long id;
-    private String name;
     private String role;
     private String firstName;
     private String lastName;
@@ -36,7 +37,7 @@ public class Employee {
         return this.firstName + " " + this.lastName;
     }
 
-    public void setName (String name) {
+    public void setName (@NotNull String name) {
         String[] parts = name.split(" ");
         this.firstName = parts[0];
         this.lastName = parts[1];
@@ -67,22 +68,31 @@ public class Employee {
 
     @Override
     public boolean equals (Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+
+        if (this == o)
+            return true;
+        if (!(o instanceof Employee))
+            return false;
+
         Employee employee = (Employee) o;
-        return Objects.equals(this.id, employee.id) && Objects.equals(this.name, employee.name) && Objects.equals(this.role, employee.role);
+
+        return Objects.equals(this.id, employee.id)
+                && Objects.equals(this.firstName, employee.firstName)
+                && Objects.equals(this.lastName, employee.lastName)
+                && Objects.equals(this.role, employee.role);
     }
 
     @Override
     public int hashCode () {
-        return Objects.hash(this.id, this.name, this.role);
+        return Objects.hash(this.id, this.firstName, this.lastName, this.role);
     }
 
     @Override
     public String toString () {
         return "Employee{" +
                 "id=" + this.id +
-                ", name='" + this.name + '\'' +
+                ", firstName='" + this.firstName + '\'' +
+                ", lastName='" + this.lastName + '\'' +
                 ", role='" + this.role + '\'' +
                 '}';
     }
