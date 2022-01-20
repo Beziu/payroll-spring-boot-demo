@@ -33,16 +33,6 @@ public class EmployeeController {
 
         return CollectionModel.of(employees,
                 linkTo(methodOn(EmployeeController.class).all()).withSelfRel());
-
-    // Bez uzywania Assemblera (bezposrednie wstrzykniecie)
-//        List<EntityModel<Employee>> employees = repository.findAll().stream()
-//                .map(employee -> EntityModel.of(employee,
-//                        linkTo(methodOn(EmployeeController.class).one(employee.getId())).withSelfRel(),
-//                        linkTo(methodOn(EmployeeController.class).all()).withRel("employees")))
-//                .collect(Collectors.toList());
-//
-//        return CollectionModel.of(employees,
-//                linkTo(methodOn(EmployeeController.class).all()).withSelfRel());
     }
 
     @GetMapping("/employees/{id}")
@@ -52,11 +42,6 @@ public class EmployeeController {
                 .orElseThrow(() -> new EmployeeNotFoundException(id));
 
         return assembler.toModel(employee);
-
-        // Bez uzywania Assemblera (bezposrednie wstrzykniecie)
-//        return EntityModel.of(employee,
-//                        linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel(),
-//                        linkTo(methodOn(EmployeeController.class).all()).withRel("employees"));
     }
 
     // Post ktory obsluguje stare i nowe zadania klientow
@@ -70,9 +55,6 @@ public class EmployeeController {
         return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);
-    // Stara wersja
-//        Employee newEmployee (@RequestBody Employee newEmployee) {
-//           return repository.save(newEmployee);
     }
 
 
@@ -108,22 +90,6 @@ public class EmployeeController {
                 .body(entityModel);
     }
 
-    // Stara medoda aktualizacji pracownika uwzglednia tylko pole "name"
-//    @PutMapping("/employees/{id}")
-//    Employee replaceEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
-//        return repository.findById(id)
-//                .map(employee -> {
-//                    employee.setName(newEmployee.getName());
-//                    employee.setRole(newEmployee.getRole());
-//                    return repository.save(employee);
-//                })
-//                .orElseGet(() -> {
-//                    newEmployee.setId(id);
-//                    return repository.save(newEmployee);
-//                });
-//    }
-
-
     // potrzebna jest do wywolania bledu "HTTP 204 No Content"
     @DeleteMapping("/employees/{id}")
     ResponseEntity<?> deleteEmployee (@PathVariable Long id) {
@@ -133,11 +99,5 @@ public class EmployeeController {
         return ResponseEntity.noContent()
                 .build();
     }
-
-    // stara wersja nie zawierajca zminnych firstName i lastName oraz nie sprawdzajaca poprawnosci danych
-//    @DeleteMapping("/employees/{id}")
-//    void deleteEmployee(@PathVariable Long id) {
-//        repository.deleteById(id);
-//    }
 
 }
