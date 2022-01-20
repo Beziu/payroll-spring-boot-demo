@@ -82,7 +82,7 @@ public class EmployeeController {
 //    który musi zostać zamienione na a URI za pomocą metody toUri.
     // Metoda przy aktualizacji danych uwzglednia tez pola firstName oraz lastName
     @PutMapping("/employees/{id}")
-    // potrzebujemy objekt newEmplyoee oraz id
+    // potrzebujemy object newEmplyoee oraz id
     ResponseEntity<?> replaceEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
 
         // tworzy nowy objekt updatedEmployee i wstawia do niego dane z repo jak znajdzie odpowiedni id
@@ -123,9 +123,21 @@ public class EmployeeController {
 //                });
 //    }
 
+
+    // potrzebna jest do wywolania bledu "HTTP 204 No Content"
     @DeleteMapping("/employees/{id}")
-    void deleteEmployee(@PathVariable Long id) {
+    ResponseEntity<?> deleteEmployee (@PathVariable Long id) {
+
         repository.deleteById(id);
+
+        return ResponseEntity.noContent()
+                .build();
     }
+
+    // stara wersja nie zawierajca zminnych firstName i lastName oraz nie sprawdzajaca poprawnosci danych
+//    @DeleteMapping("/employees/{id}")
+//    void deleteEmployee(@PathVariable Long id) {
+//        repository.deleteById(id);
+//    }
 
 }
